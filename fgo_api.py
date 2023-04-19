@@ -39,12 +39,23 @@ class Fgo_Api:
         response = requests.get(Fgo_Api.base_url + endpoint, params=params)
 
         return response.json()
+    
+    def get_image(self,image_url=str):
+
+        response = requests.get(image_url)
+
+        return response
 
 
 if __name__ == '__main__':
 
     fgo = Fgo_Api()
     servant = fgo.get_servant('JP',504600)
-    
-    print(fgo.servants['NA'])
+    servant_image_url = servant["extraAssets"]["charaGraph"]["ascension"]["1"]
+    servant_image = fgo.get_image(servant_image_url).content
+
+    with open('504600b@2.png', 'wb') as f:
+        f.write = servant_image
+
     print(servant)
+    print("Done!")
