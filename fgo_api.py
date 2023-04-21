@@ -1,15 +1,17 @@
 import requests
-import os
 
-class Fgo_Api:
+class FgoApi:
 
     base_url = 'https://api.atlasacademy.io/'
 
     def __init__(self):
         self.servants = {}
-        self._get_list_of_servants()
+        self.__get_list_of_servants()
+        self.regions = list(self.servants.keys())
+        self.__get_servant_classes()
+        self.__get_servant_rarities()
 
-    def _get_list_of_servants(self):
+    def __get_list_of_servants(self):
 
         #Get processed data for both NA and JP
         self.na_endpoint = 'export/NA/basic_servant.json'
@@ -20,12 +22,33 @@ class Fgo_Api:
 
     def __append_servants(self,endpoint=str):
         
-        response = requests.get(Fgo_Api.base_url + endpoint).json()
+        response = requests.get(FgoApi.base_url + endpoint).json()
 
         server = endpoint[7:9]
         self.servants[server] = response
 
         self.servants[server]
+
+    def __get_servant_classes(self):
+
+        self.classes = set()
+
+        #Se obtiene las clases desde el servidor de JP porque es el mas actualizado
+        for servant in self.servants["JP"]:
+            self.classes.add(servant["className"].capitalize())
+        
+        self.classes = list(self.classes)
+        self.classes.sort()
+
+    def __get_servant_rarities(self):
+
+        self.rarities = set()
+
+        for servant in self.servants["JP"]:
+            self.rarities.add(str(servant["rarity"]))
+        
+        self.rarities = list(self.rarities) 
+        self.rarities.sort()
 
     def get_servant(self,region=str,servant_id=int):
 
@@ -36,7 +59,7 @@ class Fgo_Api:
             "lang":"en"
         }
 
-        response = requests.get(Fgo_Api.base_url + endpoint, params=params)
+        response = requests.get(FgoApi.base_url + endpoint, params=params)
 
         return response.json()
     
@@ -46,10 +69,10 @@ class Fgo_Api:
 
         return response
 
-
+#Test
 if __name__ == '__main__':
 
-    fgo = Fgo_Api()
+    fgo = FgoApi()
     servant = fgo.get_servant('JP',504600)
     servant_image_url = servant["extraAssets"]["charaGraph"]["ascension"]["1"]
     servant_image = fgo.get_image(servant_image_url).content
@@ -57,5 +80,6 @@ if __name__ == '__main__':
     with open('504600b@2.png', 'wb') as f:
         f.write = servant_image
 
-    print(servant)
+    print(fgo.classes)
+    print(fgo.rarities)
     print("Done!")

@@ -14,7 +14,7 @@ from PyQt6.QtGui import QPixmap
 from PyQt6.QtCore import Qt
 
 
-from fgo_api import Fgo_Api
+from model import ServantModel
 
 class MainWindow(QMainWindow):
 
@@ -27,33 +27,21 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.centralWidget)
         self.layout = QVBoxLayout()
         self.centralWidget.setLayout(self.layout)
-        #self.solicitationModel = SolicitationModel()
+        self.model = ServantModel()
         self.setupUI()
 
     def setupUI(self):
         
-        """self.table = QTableView()
-        self.table.setModel(self.solicitationModel.model)
-        self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self.table.horizontalHeader().setDefaultSectionSize(90)
-        self.table.horizontalHeader().stretchLastSection()
-
-        self.addButton = QPushButton("Add Solicitation")
-        self.addButton.clicked.connect(self.openAddDialog)
-
-        self.deleteButton = QPushButton("Delete Solicitation")
-        self.deleteButton.clicked.connect(self.deleteSolicitation)"""
-
         main_container = QVBoxLayout()
 
         # Setup filter container
         filter_container = QHBoxLayout()
         self.region_filter = QComboBox()
-        self.region_filter.addItems(["Test"])
+        self.region_filter.addItems(self.model.list_regions)
         self.class_filter = QComboBox()
-        self.class_filter.addItems(["Test"])
+        self.class_filter.addItems(self.model.list_classes)
         self.rarity_filter = QComboBox()
-        self.rarity_filter.addItems(["Test"])
+        self.rarity_filter.addItems(self.model.list_rarities)
         self.name_chooser = QComboBox()
         self.name_chooser.addItems(["Test"])
 
