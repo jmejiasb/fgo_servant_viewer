@@ -43,7 +43,7 @@ class MainWindow(QMainWindow):
         self.rarity_filter = QComboBox()
         self.rarity_filter.addItems(self.model.list_rarities)
         self.name_chooser = QComboBox()
-        self.name_chooser.addItems(["Test"])
+        self.name_chooser.addItems()
 
         filter_container.addWidget(self.region_filter)
         filter_container.addWidget(self.class_filter)
