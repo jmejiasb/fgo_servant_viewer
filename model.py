@@ -4,23 +4,23 @@ class ServantModel:
 
     def __init__(self):
         self.fgo = FgoApi()
-        self.filtered_servant = []
+        self.filtered_servants = []
         self.list_regions = self.fgo.regions
         self.list_classes = self.fgo.classes
         self.list_rarities = self.fgo.rarities
 
-    def filter_servant(self, region, className, rarity):
+    def filterServant(self, region=str, className=str, rarity=int):
 
         servants = self.fgo.servants[region]
 
         for servant in servants:
             if servant["className"] == className and servant["rarity"] == rarity:
-                self.filtered_servant.append(servant["name"])
+                self.filtered_servants.append(servant["name"])
 
 
 if __name__ == "__main__":
 
     model = ServantModel()
-    model.filter_servant("NA", "saber", 5)
+    model.filterServant("NA", "saber", 5)
     
-    print(model.filtered_servant)
+    print(model.filtered_servants)
