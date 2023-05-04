@@ -1,6 +1,6 @@
 from fgo_api import FgoApi 
 
-class ServantModel:
+class ServantModel(FgoApi):
 
     def __init__(self):
         self.fgo = FgoApi()

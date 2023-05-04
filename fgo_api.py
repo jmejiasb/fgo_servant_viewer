@@ -35,7 +35,7 @@ class FgoApi:
 
         #Se obtiene las clases desde el servidor de JP porque es el mas actualizado
         for servant in self.servants["JP"]:
-            self.classes.add(servant["className"].capitalize())
+            self.classes.add(servant["className"])
         
         self.classes = list(self.classes)
         self.classes.sort()
@@ -68,18 +68,23 @@ class FgoApi:
         response = requests.get(image_url)
 
         return response
+    
+    def get_id_by_name(self, server=str, name=str):
+        list_server = self.servants[server]
+        for servant in list_server:
+            if servant["name"] == name:
+                return servant["id"]
+                break
+
 
 #Test
 if __name__ == '__main__':
 
     fgo = FgoApi()
-    servant = fgo.get_servant('JP',504600)
+    servant = fgo.get_servant('JP', 1000200)
     servant_image_url = servant["extraAssets"]["charaGraph"]["ascension"]["1"]
-    servant_image = fgo.get_image(servant_image_url).content
+    fgo.get_id_by_name("JP","Miss Crane")
 
-    with open('504600b@2.png', 'wb') as f:
-        f.write = servant_image
-
-    print(fgo.classes)
-    print(fgo.rarities)
+    print(servant_image_url)
+    #print(id)
     print("Done!")
