@@ -28,7 +28,7 @@ class MainWindow(QMainWindow):
         self.layout = QVBoxLayout()
         self.centralWidget.setLayout(self.layout)
         self.model = ServantModel()
-        self.test_servant = self.model.fgo.get_servant("JP",504600)
+        self.name_chooser = QComboBox()
         self.__setupUI()
         
 
@@ -40,7 +40,6 @@ class MainWindow(QMainWindow):
         #self.banner_container = self.__setupBannerContainer()
         self.servant_container = self.__setupServantContainer()
 
-        self.name_chooser = QComboBox()
         self.name_chooser.currentTextChanged.connect(self.showServantInfo)
         
         main_container.addLayout(self.filter_container)
@@ -55,12 +54,15 @@ class MainWindow(QMainWindow):
         filter = QHBoxLayout()
         self.region_filter = QComboBox()
         self.region_filter.addItems(self.model.list_regions)
+        self.region_filter.currentTextChanged.connect(self.clearServantList)
         self.class_filter = QComboBox()
+        self.class_filter.currentTextChanged.connect(self.clearServantList)
         self.class_filter.addItems(self.model.list_classes)
         self.rarity_filter = QComboBox()
         self.rarity_filter.addItems(self.model.list_rarities)
+        self.rarity_filter.currentTextChanged.connect(self.clearServantList)
         self.filter_button = QPushButton("Filter")
-        self.filter_button.clicked.connect(self.filterConnection)
+        self.filter_button.clicked.connect(self.filterServant)
         
         filter.addWidget(self.region_filter)
         filter.addWidget(self.class_filter)
@@ -83,18 +85,18 @@ class MainWindow(QMainWindow):
     """
 
     def __setupServantContainer(self):
-        servant_container = QVBoxLayout()
+        servant_container = QHBoxLayout()
 
         servant_info = QGridLayout() 
 
         self.graph_pixmap = QPixmap()
-        self.servant_graph = QLabel("test")
+        self.servant_graph = QLabel()
 
         name_label = QLabel("Name :")
-        self.servant_name = QLabel(self.test_servant["name"])
+        self.servant_name = QLabel()
 
         attribute = QLabel("Attribute :")
-        self.servant_attribute = QLabel(self.test_servant["attribute"].capitalize())
+        self.servant_attribute = QLabel()
 
         alignment = QLabel("Alignment :")
         self.servant_alignment = QLabel("test2")
@@ -104,60 +106,75 @@ class MainWindow(QMainWindow):
         self.stage_3 = QPushButton("Stage 3")
         self.stage_4 = QPushButton("Stage 4")
 
-        servant_info.addWidget(self.servant_graph,0,0,5,2)
-        servant_info.addWidget(name_label,0,2)
-        servant_info.addWidget(self.servant_name,0,3)
-        servant_info.addWidget(attribute,1,2)
-        servant_info.addWidget(self.servant_attribute,1,3)
-        servant_info.addWidget(alignment,2,2)
-        servant_info.addWidget(self.servant_alignment,2,3)
-        servant_info.addWidget(self.stage_1,3,2)
-        servant_info.addWidget(self.stage_2,3,3)
-        servant_info.addWidget(self.stage_3,4,2)
-        servant_info.addWidget(self.stage_4,4,3)
 
+        servant_info.addWidget(name_label,0,0)
+        servant_info.addWidget(self.servant_name,0,1)
+        servant_info.addWidget(attribute,1,0)
+        servant_info.addWidget(self.servant_attribute,1,1)
+        servant_info.addWidget(alignment,2,0)
+        servant_info.addWidget(self.servant_alignment,2,1)
+        servant_info.addWidget(self.stage_1,3,1)
+        servant_info.addWidget(self.stage_2,3,0)
+        servant_info.addWidget(self.stage_3,4,1)
+        servant_info.addWidget(self.stage_4,4,0)
+        servant_info
+
+        servant_container.addWidget(self.servant_graph)
         servant_container.addLayout(servant_info)
 
         return servant_container
 
-    def filterConnection(self):
-
-        self.name_chooser.clear()
+    def filterServant(self):
 
         region = self.region_filter.currentText()
         class_ = self.class_filter.currentText()
         rarity = int(self.rarity_filter.currentText())
+        name_chooser_names = [self.name_chooser.itemText(i) for i in range(self.name_chooser.count())]
 
-        
+        filtered_servants = self.model.filterServant(region, class_, rarity)
 
-        self.model.filterServant(region, class_, rarity)
+        if set(name_chooser_names) != set(filtered_servants):
 
-        self.name_chooser.addItems(self.model.filtered_servants)
+            self.name_chooser.addItems(filtered_servants)
+
+        self.is_filtered = True
+
+        self.showServantInfo()
+
+    def clearServantList(self):
+
+        self.is_filtered = False
+
+        if self.name_chooser.currentText() != "":
+            
+            self.name_chooser.clear()
 
 
     def showServantInfo(self):
-
-        region = self.region_filter.currentText()
-        current_name = self.name_chooser.currentText()
-        id = self.model.fgo.get_id_by_name(region, current_name)
         
-        self.servant = self.model.fgo.get_servant(region, id)
+        if self.is_filtered == True:
+            region = self.region_filter.currentText()
+            current_name = self.name_chooser.currentText()
 
-        stage = 1
-        self.setServantImage(stage)
+            id = self.model.fgo.get_id_by_name(region, current_name)
 
-        self.servant_name.setText(self.servant["name"])
-        self.servant_attribute.setText(self.servant["attribute"].capitalize())
+            self.servant = self.model.fgo.get_servant(region, id)
 
-        #Do the split and merge of the alignments
+            stage = 1
+            self.setServantImage(stage)
 
-        #Do the buttons with servant["extraAssets"]["charaGraph"]["ascension"]["1"]...
+            self.servant_name.setText(self.servant["name"])
+            self.servant_attribute.setText(self.servant["attribute"].capitalize())
+
+            #Do the split and merge of the alignments
+
+            #Do the buttons with servant["extraAssets"]["charaGraph"]["ascension"]["1"]...
 
     def setServantImage(self,stage):
 
         image = self.model.fgo.get_image(self.servant["extraAssets"]["charaGraph"]["ascension"][str(stage)]).content
         self.graph_pixmap.loadFromData(image)
-        scaled_graph = self.graph_pixmap.scaled(240, 360, Qt.AspectRatioMode.KeepAspectRatio)
+        scaled_graph = self.graph_pixmap.scaled(360, 540, Qt.AspectRatioMode.KeepAspectRatio)
 
         self.servant_graph.setPixmap(scaled_graph)
         self.servant_graph.setScaledContents(True)
