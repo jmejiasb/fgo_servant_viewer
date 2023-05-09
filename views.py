@@ -1,4 +1,5 @@
 import sys
+import re
 
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtWidgets import QMainWindow
@@ -6,7 +7,7 @@ from PyQt6.QtWidgets import QWidget
 from PyQt6.QtWidgets import QVBoxLayout
 from PyQt6.QtWidgets import QHBoxLayout
 from PyQt6.QtWidgets import QGridLayout
-from PyQt6.QtWidgets import QLineEdit
+from PyQt6.QtWidgets import QFrame
 from PyQt6.QtWidgets import QPushButton
 from PyQt6.QtWidgets import QLabel
 from PyQt6.QtWidgets import QComboBox
@@ -37,15 +38,13 @@ class MainWindow(QMainWindow):
         main_container = QVBoxLayout()
 
         self.filter_container = self.__setupFilterContainer()
-        #self.banner_container = self.__setupBannerContainer()
         self.servant_container = self.__setupServantContainer()
 
         self.name_chooser.currentTextChanged.connect(self.showServantInfo)
         
         main_container.addLayout(self.filter_container)
         main_container.addWidget(self.name_chooser)
-        #main_container.addLayout(self.banner_container)
-        main_container.addLayout(self.servant_container)
+        main_container.addWidget(self.servant_container)
 
         self.layout.addLayout(main_container)
 
@@ -70,24 +69,12 @@ class MainWindow(QMainWindow):
         filter.addWidget(self.filter_button)
 
         return filter
-    
-    """def __setupBannerContainer(self):
-        # Setup banner container, probably gonna erase this
-
-        banner = QHBoxLayout()
-        self.class_name = QLabel("Class:")
-        self.stars = QLabel()
-
-        banner.addWidget(self.class_name)
-        banner.addWidget(self.stars)
-
-        return banner
-    """
 
     def __setupServantContainer(self):
         servant_container = QHBoxLayout()
 
         servant_info = QGridLayout() 
+        servant_info.setVerticalSpacing(10)
 
         self.graph_pixmap = QPixmap()
         self.servant_graph = QLabel()
@@ -106,23 +93,53 @@ class MainWindow(QMainWindow):
         self.stage_3 = QPushButton("Stage 3")
         self.stage_4 = QPushButton("Stage 4")
 
+        base_atk = QLabel("Base ATK:")
+        self.servant_base_atk = QLabel()
 
+        max_atk = QLabel("Max ATK:")
+        self.servant_max_atk = QLabel()
+
+        base_hp = QLabel("Base HP:")
+        self.servant_base_hp = QLabel()
+
+        max_hp = QLabel("Max HP:")
+        self.servant_max_hp = QLabel()
+
+        traits = QLabel("Traits:")
+        self.servant_traits = QVBoxLayout()
+
+        #Maybe do a for loop here
         servant_info.addWidget(name_label,0,0)
         servant_info.addWidget(self.servant_name,0,1)
         servant_info.addWidget(attribute,1,0)
         servant_info.addWidget(self.servant_attribute,1,1)
         servant_info.addWidget(alignment,2,0)
         servant_info.addWidget(self.servant_alignment,2,1)
-        servant_info.addWidget(self.stage_1,3,1)
-        servant_info.addWidget(self.stage_2,3,0)
-        servant_info.addWidget(self.stage_3,4,1)
-        servant_info.addWidget(self.stage_4,4,0)
-        servant_info
+        servant_info.addWidget(self.stage_1,3,0)
+        servant_info.addWidget(self.stage_2,3,1)
+        servant_info.addWidget(self.stage_3,4,0)
+        servant_info.addWidget(self.stage_4,4,1)
+        servant_info.addWidget(base_atk,5,0)
+        servant_info.addWidget(self.servant_base_atk,5,1)
+        servant_info.addWidget(max_atk,6,0)
+        servant_info.addWidget(self.servant_max_atk,6,1)
+        servant_info.addWidget(base_hp,7,0)
+        servant_info.addWidget(self.servant_base_hp,7,1)
+        servant_info.addWidget(max_hp,8,0)
+        servant_info.addWidget(self.servant_max_hp,8,1)
+        servant_info.addWidget(traits,9,0)
+        servant_info.addLayout(self.servant_traits,9,1)
+        
 
         servant_container.addWidget(self.servant_graph)
         servant_container.addLayout(servant_info)
 
-        return servant_container
+        frame = QFrame()
+        frame.setLayout(servant_container)
+        frame.setFixedSize(470,368)
+        frame.hide()
+
+        return frame
 
     def filterServant(self):
 
@@ -140,6 +157,7 @@ class MainWindow(QMainWindow):
         self.is_filtered = True
 
         self.showServantInfo()
+        self.servant_container.show()
 
     def clearServantList(self):
 
@@ -165,6 +183,11 @@ class MainWindow(QMainWindow):
 
             self.servant_name.setText(self.servant["name"])
             self.servant_attribute.setText(self.servant["attribute"].capitalize())
+            self.servant_alignment.setText(self.__getServantAlignment(self.servant))
+            self.servant_base_atk.setText(str(self.servant["atkBase"]))
+            self.servant_max_atk.setText(str(self.servant["atkMax"]))
+            self.servant_base_hp.setText(str(self.servant["hpBase"]))
+            self.servant_max_hp.setText(str(self.servant["hpMax"]))
 
             #Do the split and merge of the alignments
 
@@ -176,8 +199,17 @@ class MainWindow(QMainWindow):
         self.graph_pixmap.loadFromData(image)
         scaled_graph = self.graph_pixmap.scaled(360, 540, Qt.AspectRatioMode.KeepAspectRatio)
 
-        self.servant_graph.setPixmap(scaled_graph)
+        self.servant_graph.setPixmap(self.graph_pixmap)
         self.servant_graph.setScaledContents(True)
+
+    def __getServantAlignment(self,servant):
+        
+        first_alignment = servant["traits"][3]["name"]
+        second_alignment = servant["traits"][4]["name"]
+
+        servant_alignment = re.split('(?<=.)(?=[A-Z])', first_alignment)[1] + " " + re.split('(?<=.)(?=[A-Z])', second_alignment)[1]
+
+        return servant_alignment
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
