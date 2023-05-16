@@ -23,7 +23,7 @@ class MainWindow(QMainWindow):
         super().__init__(parent)
 
         self.setWindowTitle("FGO Servant Viewer")
-        self.resize(480, 720)
+        self.resize(480, 240)
         self.centralWidget = QWidget()
         self.setCentralWidget(self.centralWidget)
         self.layout = QVBoxLayout()
