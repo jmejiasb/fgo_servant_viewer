@@ -1,22 +1,10 @@
-import sys
-import re
-
-from PyQt6.QtWidgets import QApplication
-from PyQt6.QtWidgets import QMainWindow
-from PyQt6.QtWidgets import QWidget
-from PyQt6.QtWidgets import QVBoxLayout
-from PyQt6.QtWidgets import QHBoxLayout
-from PyQt6.QtWidgets import QGridLayout
-from PyQt6.QtWidgets import QFrame
-from PyQt6.QtWidgets import QPushButton
-from PyQt6.QtWidgets import QLabel
-from PyQt6.QtWidgets import QComboBox
-from PyQt6.QtWidgets import QButtonGroup
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QComboBox, QHBoxLayout, QPushButton, QGridLayout, QLabel, QButtonGroup, \
+                            QFrame, QMessageBox, QMainWindow
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtCore import Qt
 
 
-from model import ServantModel
+from .model import ServantModel
 
 class MainWindow(QMainWindow):
 
@@ -24,7 +12,7 @@ class MainWindow(QMainWindow):
         super().__init__(parent)
 
         self.setWindowTitle("FGO Servant Viewer")
-        self.resize(480, 240)
+        self.resize(600, 300)
         self.centralWidget = QWidget()
         self.setCentralWidget(self.centralWidget)
         self.layout = QVBoxLayout()
@@ -37,35 +25,45 @@ class MainWindow(QMainWindow):
     def __setupUI(self):
         
         main_container = QVBoxLayout()
+        
 
         self.filter_container = self.__setupFilterContainer()
         self.servant_container = self.__setupServantContainer()
 
-        self.name_chooser.currentTextChanged.connect(self.showServantInfo)
+        self.name_chooser.currentTextChanged.connect(self.__showServantInfo)
         
+        main_container.addWidget(QLabel("Choose the Server Region, Class and Rarity and click 'Filter' to look for servants!"))
         main_container.addLayout(self.filter_container)
         main_container.addWidget(self.name_chooser)
         main_container.addWidget(self.servant_container)
+        main_container.addStretch()
 
         self.layout.addLayout(main_container)
 
     def __setupFilterContainer(self):
         # Setup filter container
         filter = QHBoxLayout()
+
+        region = QLabel("Region:")
         self.region_filter = QComboBox()
         self.region_filter.addItems(self.model.list_regions)
-        self.region_filter.currentTextChanged.connect(self.clearServantList)
+        self.region_filter.currentTextChanged.connect(self.__clearServantList)
+        _class = QLabel("Class:")
         self.class_filter = QComboBox()
-        self.class_filter.currentTextChanged.connect(self.clearServantList)
+        self.class_filter.currentTextChanged.connect(self.__clearServantList)
         self.class_filter.addItems(self.model.list_classes)
+        rarity = QLabel("Rarity:")
         self.rarity_filter = QComboBox()
         self.rarity_filter.addItems(self.model.list_rarities)
-        self.rarity_filter.currentTextChanged.connect(self.clearServantList)
+        self.rarity_filter.currentTextChanged.connect(self.__clearServantList)
         self.filter_button = QPushButton("Filter")
-        self.filter_button.clicked.connect(self.filterServant)
+        self.filter_button.clicked.connect(self.__filterServant)
         
+        filter.addWidget(region)
         filter.addWidget(self.region_filter)
+        filter.addWidget(_class)
         filter.addWidget(self.class_filter)
+        filter.addWidget(rarity)
         filter.addWidget(self.rarity_filter)
         filter.addWidget(self.filter_button)
 
@@ -79,6 +77,7 @@ class MainWindow(QMainWindow):
 
         self.graph_pixmap = QPixmap()
         self.servant_graph = QLabel()
+        self.servant_graph.setFixedSize(384,543)
 
         name_label = QLabel("Name :")
         self.servant_name = QLabel()
@@ -87,7 +86,7 @@ class MainWindow(QMainWindow):
         self.servant_attribute = QLabel()
 
         alignment = QLabel("Alignment :")
-        self.servant_alignment = QLabel("test2")
+        self.servant_alignment = QLabel()
 
         self.stage_1 = QPushButton("Stage 1")
         self.stage_2 = QPushButton("Stage 2")
@@ -105,10 +104,6 @@ class MainWindow(QMainWindow):
 
         max_hp = QLabel("Max HP:")
         self.servant_max_hp = QLabel()
-
-        traits = QLabel("Traits:")
-        self.servant_traits = QVBoxLayout()
-
         
         servant_info.addWidget(name_label,0,0)
         servant_info.addWidget(self.servant_name,0,1)
@@ -128,8 +123,6 @@ class MainWindow(QMainWindow):
         servant_info.addWidget(self.servant_base_hp,7,1)
         servant_info.addWidget(max_hp,8,0)
         servant_info.addWidget(self.servant_max_hp,8,1)
-        servant_info.addWidget(traits,9,0)
-        servant_info.addLayout(self.servant_traits,9,1)
         
         self.stage_group = QButtonGroup()
         self.stage_group.setExclusive(True)
@@ -138,19 +131,18 @@ class MainWindow(QMainWindow):
         self.stage_group.addButton(self.stage_3)
         self.stage_group.addButton(self.stage_4)
 
-        self.stage_group.buttonClicked.connect(self.changeServantImage)
+        self.stage_group.buttonClicked.connect(self.__changeServantImage)
 
         servant_container.addWidget(self.servant_graph)
         servant_container.addLayout(servant_info)
 
         frame = QFrame()
         frame.setLayout(servant_container)
-        frame.setFixedSize(470,368)
         frame.hide()
 
         return frame
 
-    def filterServant(self):
+    def __filterServant(self):
 
         region = self.region_filter.currentText()
         class_ = self.class_filter.currentText()
@@ -165,10 +157,9 @@ class MainWindow(QMainWindow):
 
         self.is_filtered = True
 
-        self.showServantInfo()
-        self.servant_container.show()
+        self.__showServantInfo()
 
-    def clearServantList(self):
+    def __clearServantList(self):
 
         self.is_filtered = False
 
@@ -176,8 +167,7 @@ class MainWindow(QMainWindow):
             
             self.name_chooser.clear()
 
-
-    def showServantInfo(self):
+    def __showServantInfo(self):
         
         if self.is_filtered == True:
             region = self.region_filter.currentText()
@@ -186,53 +176,47 @@ class MainWindow(QMainWindow):
             id = self.model.fgo.get_id_by_name(region, current_name)
 
             self.servant = self.model.fgo.get_servant(region, id)
+            
+            if "detail" in self.servant.keys():
+                QMessageBox.critical(
+                        self,
+                        "Error",
+                        f"No servant found! Please try again",
+                    )
+                self.is_filtered == False
+                return
+            else:
+                stage = 1
+                self.__setServantImage(stage)
 
-            stage = 1
-            self.setServantImage(stage)
+                self.servant_name.setText(self.servant["name"])
+                self.servant_attribute.setText(self.servant["attribute"].capitalize())
+                self.servant_alignment.setText(self.model.getServantAlignment(self.servant))
+                self.servant_base_atk.setText(str(self.servant["atkBase"]))
+                self.servant_max_atk.setText(str(self.servant["atkMax"]))
+                self.servant_base_hp.setText(str(self.servant["hpBase"]))
+                self.servant_max_hp.setText(str(self.servant["hpMax"]))
 
-            self.servant_name.setText(self.servant["name"])
-            self.servant_attribute.setText(self.servant["attribute"].capitalize())
-            self.servant_alignment.setText(self.__getServantAlignment(self.servant))
-            self.servant_base_atk.setText(str(self.servant["atkBase"]))
-            self.servant_max_atk.setText(str(self.servant["atkMax"]))
-            self.servant_base_hp.setText(str(self.servant["hpBase"]))
-            self.servant_max_hp.setText(str(self.servant["hpMax"]))
+                self.servant_container.show()
 
-            #Do the buttons with servant["extraAssets"]["charaGraph"]["ascension"]["1"]...
-
-    def setServantImage(self,stage):
-
-        image_url = self.servant["extraAssets"]["charaGraph"]["ascension"][str(stage)]
-        image = self.model.fgo.get_image(image_url).content
+    def __setServantImage(self,stage):
+        
+        image = self.model.getServantImage(stage, self.servant)
+        
         self.graph_pixmap.loadFromData(image)
         #scaled_graph = self.graph_pixmap.scaled(360, 540, Qt.AspectRatioMode.KeepAspectRatio)
 
         self.servant_graph.setPixmap(self.graph_pixmap)
         self.servant_graph.setScaledContents(True)
 
-    def changeServantImage(self,button):
+    def __changeServantImage(self,button):
 
         stage = button.text()[-1]
 
         if self.is_filtered == True:
             
 
-            self.setServantImage(stage)
+            self.__setServantImage(stage)
 
+    
 
-
-
-    def __getServantAlignment(self,servant):
-        
-        first_alignment = servant["traits"][3]["name"]
-        second_alignment = servant["traits"][4]["name"]
-
-        servant_alignment = re.split('(?<=.)(?=[A-Z])', first_alignment)[1] + " " + re.split('(?<=.)(?=[A-Z])', second_alignment)[1]
-
-        return servant_alignment
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = MainWindow()
-    window.show()
-    sys.exit(app.exec())
