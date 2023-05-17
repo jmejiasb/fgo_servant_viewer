@@ -11,6 +11,7 @@ from PyQt6.QtWidgets import QFrame
 from PyQt6.QtWidgets import QPushButton
 from PyQt6.QtWidgets import QLabel
 from PyQt6.QtWidgets import QComboBox
+from PyQt6.QtWidgets import QButtonGroup
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtCore import Qt
 
@@ -108,7 +109,7 @@ class MainWindow(QMainWindow):
         traits = QLabel("Traits:")
         self.servant_traits = QVBoxLayout()
 
-        #Maybe do a for loop here
+        
         servant_info.addWidget(name_label,0,0)
         servant_info.addWidget(self.servant_name,0,1)
         servant_info.addWidget(attribute,1,0)
@@ -130,6 +131,14 @@ class MainWindow(QMainWindow):
         servant_info.addWidget(traits,9,0)
         servant_info.addLayout(self.servant_traits,9,1)
         
+        self.stage_group = QButtonGroup()
+        self.stage_group.setExclusive(True)
+        self.stage_group.addButton(self.stage_1)
+        self.stage_group.addButton(self.stage_2)
+        self.stage_group.addButton(self.stage_3)
+        self.stage_group.addButton(self.stage_4)
+
+        self.stage_group.buttonClicked.connect(self.changeServantImage)
 
         servant_container.addWidget(self.servant_graph)
         servant_container.addLayout(servant_info)
@@ -189,18 +198,29 @@ class MainWindow(QMainWindow):
             self.servant_base_hp.setText(str(self.servant["hpBase"]))
             self.servant_max_hp.setText(str(self.servant["hpMax"]))
 
-            #Do the split and merge of the alignments
-
             #Do the buttons with servant["extraAssets"]["charaGraph"]["ascension"]["1"]...
 
     def setServantImage(self,stage):
 
-        image = self.model.fgo.get_image(self.servant["extraAssets"]["charaGraph"]["ascension"][str(stage)]).content
+        image_url = self.servant["extraAssets"]["charaGraph"]["ascension"][str(stage)]
+        image = self.model.fgo.get_image(image_url).content
         self.graph_pixmap.loadFromData(image)
-        scaled_graph = self.graph_pixmap.scaled(360, 540, Qt.AspectRatioMode.KeepAspectRatio)
+        #scaled_graph = self.graph_pixmap.scaled(360, 540, Qt.AspectRatioMode.KeepAspectRatio)
 
         self.servant_graph.setPixmap(self.graph_pixmap)
         self.servant_graph.setScaledContents(True)
+
+    def changeServantImage(self,button):
+
+        stage = button.text()[-1]
+
+        if self.is_filtered == True:
+            
+
+            self.setServantImage(stage)
+
+
+
 
     def __getServantAlignment(self,servant):
         
