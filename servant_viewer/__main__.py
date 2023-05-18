@@ -1,6 +1,6 @@
 import sys
 
-from views import MainWindow, App
+from .views import MainWindow, App
 
 def main(args=None):
     if args is None:
