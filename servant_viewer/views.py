@@ -1,18 +1,103 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QComboBox, QHBoxLayout, QPushButton, QGridLayout, QLabel, QButtonGroup, \
-                            QFrame, QMessageBox, QMainWindow
+                            QFrame, QMessageBox, QMainWindow, QApplication
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtCore import Qt
-
 
 from .model import ServantModel
 
 class MainWindow(QMainWindow):
+
+    app_style = """
+    QWidget 
+    {
+        background-color: #f5fcff;
+        font: sans-serif;
+        font-size: 13px
+    }
+
+    QPushButton
+    {
+        outline: 0;
+        border: 1px solid #005781;
+        font-weight: 600;
+        font-size: 13px;
+        height: 30px;
+        background-color: #ffffff;
+        color: #005781;
+        padding: 0 20px;
+    }
+    
+    QPushButton:hover 
+    {
+        background: #005781;
+        color: #fff;  
+    }
+
+    QLabel
+    {
+        font-size: 13px;
+        padding: 10px;
+    }
+
+    QGridLayout
+    {
+        border: 1px solid #005781;
+        font-size: 13px;
+    }
+
+    QComboBox {
+        border: 1px solid #005781;
+        background: #ffffff;
+        min-width: 6em;
+        padding: 0 10px;
+    }
+
+    QComboBox:editable {
+        background: white;
+    }
+
+    QComboBox:on { /* shift the text when the popup opens */
+        padding-top: 3px;
+        padding-left: 4px;
+    }
+
+    QComboBox::drop-down {
+        subcontrol-origin: padding;
+        subcontrol-position: top right;
+        width: 15px;
+
+        border-left-width: 1px;
+        border-left-color: darkgray;
+        border-left-style: solid; /* just a single line */
+        border-top-right-radius: 3px; /* same radius as the QComboBox */
+        border-bottom-right-radius: 3px;
+    }
+
+    QScrollBar
+    {
+        background : #f5fcff;
+    }
+
+    QScrollBar::handle
+    {
+        background : #005781;
+    }
+    
+    QScrollBar::handle::pressed
+    {
+        background : #004F75;
+    }
+
+
+
+"""
 
     def __init__(self, parent=None):
         super().__init__(parent)
 
         self.setWindowTitle("FGO Servant Viewer")
         self.resize(600, 300)
+        self.setStyleSheet(MainWindow.app_style)
         self.centralWidget = QWidget()
         self.setCentralWidget(self.centralWidget)
         self.layout = QVBoxLayout()
@@ -219,4 +304,7 @@ class MainWindow(QMainWindow):
             self.__setServantImage(stage)
 
     
+class App(QApplication):
 
+    def __init__(self):
+        super().__init__()
